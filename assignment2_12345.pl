@@ -17,30 +17,34 @@ print_fgp(F,G,P):-
 solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   %Parsing agenda to get current
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
-  Current = [c(F,G,Pos)|RPath].
+  Current = [c(F,G,Pos)|RPath],
   achieved_v2(Task,Current,RPath,Cost,NewPos).
 
 solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
-  print_fgp(F,G,Pos),
-  setof(Current, search_astar(Task,Pos,F1,G,G1,P1,RPath), Children),
+  % print_fgp(F,G,Pos), %TODO: REMOVE DOT
+  setof((c(F1,G1,P1),RR1), search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children),
   append(Agenda,Children,NewAgenda),
   D is D+1,
   solve_task_astar(Task,NewAgenda,D,RR,F1,NewPos).  % backtrack search
 
-search_astar(go(P),Pos,F,G,G1,P1,RPath) :-
+search_astar(go(P),Pos,F,G,G1,P1,RPath,NewRR) :-
   map_adjacent(Pos,P1,empty),
-  \+ memberchk(RPath,P1),  % check we have not been here already
+  \+ memberchk(P1, RPath),  % check we have not been here already
   G1 is G+1,
   map_distance(Pos,P1,H),
-  F is G1 + H.
+  F is G1 + H,
+  NewRR = [P1 | RPath].
+
 
 search_astar(find(O),Pos,F,G,P1,R,RPath) :-
   map_adjacent(Pos,P1,empty),
-  \+ memberchk(RPath,P1),  % check we have not been here already
+  \+ memberchk(P1, RPath),  % check we have not been here already
   G1 is G+1,
-  F is G1.
+  F is G1,
+  NewRR = [P1 | RPath].
+
 
 achieved_v2(go(Exit),Current,RPath,Cost,NewPos) :-
   Current = [c(F,G,Pos)|RPath],
