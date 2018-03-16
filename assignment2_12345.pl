@@ -33,7 +33,7 @@ search_astar(go(P),Pos,F,G,G1,P1,RPath,NewRR) :-
   map_adjacent(Pos,P1,empty),
   \+ memberchk(P1, RPath),  % check we have not been here already
   G1 is G+1,
-  map_distance(Pos,P1,H),
+  map_distance(P1,P,H),
   F is G1 + H,
   NewRR = [P1 | RPath].
 
