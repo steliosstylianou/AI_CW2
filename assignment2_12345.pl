@@ -20,23 +20,21 @@ solve_task2(Task,Cost):-
   %%%%%%%%%% A-STAR SEARCH %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % agenda is a list of current structures
 
-solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
+solve_task_astar(Task,Agenda,D,RR,[cost(Cost),depth(Depth)],NewPos) :-
   %Parsing agenda to get current
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
-  AchieveVar = [c(F,Pos)],
-  achieved(Task,Current,RPath,Cost,NewPos).
+  achieved_v2(Task,Current,RPath,Cost,NewPos).
 
 solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
-  writeln('Trying astar'),
+  writeln('Solve astar'),
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
   % print_fgp(F,G,Pos),
-  setof((c(F1,G1,P1),RR1), search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children),
-  append(Agenda,Children,NewAgenda),
-  writeln('Updated agenda'),
-  D is D+1,
-  solve_task_astar(Task,NewAgenda,D,RR,F1,NewPos).  % backtrack search
+  ( setof([c(F1,G1,P1),RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
+  -> append(Children,Agenda,NewAgenda) ; NewAgenda = Agenda),
+  D1 is D+1,
+  solve_task_astar(Task,NewAgenda,D1,RR,F1,NewPos).  % backtrack search
 
 search_astar(go(P),Pos,F,G,G1,P1,RPath,NewRR) :-
   writeln('Searching astar'),
@@ -45,9 +43,7 @@ search_astar(go(P),Pos,F,G,G1,P1,RPath,NewRR) :-
   G1 is G+1,
   map_distance(P1,P,H),
   F is G1 + H,
-  NewRR = [P1 | RPath],
-  write('Found path with F='), writeln(F).
-
+  NewRR = [P1 | RPath].
 
 search_astar(find(O),Pos,F,G,P1,R,RPath) :-
   writeln('Searching astar'),
@@ -56,6 +52,19 @@ search_astar(find(O),Pos,F,G,P1,R,RPath) :-
   G1 is G+1,
   F is G1,
   NewRR = [P1 | RPath].
+
+achieved_v2(go(Exit),Current,RPath,Cost,NewPos) :-
+  writeln('trying Achieve'),
+  Current = [c(Cost,G,Pos)|RPath],
+  ( Exit=none -> true
+  ; otherwise ->  RPath = [Exit|_], writeln('achieved done!')
+  ).
+
+achieved_v2(find(O),Current,RPath,Cost,NewPos) :-
+  Current = [c(Cost,G,Pos)|RPath],
+  ( O=none    -> true
+  ; otherwise -> RPath = [Last|_],map_adjacent(Last,_,O)
+  ).
 
 %%%%%%%%%% Useful predicates %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% backtracking depth-first search, needs to be changed to agenda-based A*
@@ -78,6 +87,7 @@ achieved(go(Exit),Current,RPath,Cost,NewPos) :-
   ( Exit=none -> true
   ; otherwise -> RPath = [Exit|_], writeln('Achieve false')
   ).
+
 achieved(find(O),Current,RPath,Cost,NewPos) :-
   Current = [c(Cost,NewPos)|RPath],
   ( O=none    -> true
