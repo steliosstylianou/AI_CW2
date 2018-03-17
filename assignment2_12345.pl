@@ -4,7 +4,7 @@ candidate_number(12345).
 solve_task(Task,Cost):-
   my_agent(Agent),
   query_world( agent_current_position, [Agent,P] ),
-  solve_task_bt(Task,[c(0,P),P],0,R,Cost,_NewPos),!,  % prune choice point for efficiency
+  solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,_NewPos),!,  % prune choice point for efficiency
   reverse(R,[_Init|Path]),
   query_world( agent_do_moves, [Agent,Path] ).
 
@@ -33,13 +33,6 @@ achieved(find(O),Current,RPath,Cost,NewPos) :-
 
 search(F,N,N,1) :-
   map_adjacent(F,N,empty).
-
-solve_task2(Task,Cost):-
-  my_agent(Agent),
-  query_world( agent_current_position, [Agent,P] ),
-  solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,_NewPos),!,  % prune choice point for efficiency
-  reverse(R,[_Init|Path]),
-  query_world( agent_do_moves, [Agent,Path] ).
 
   %%%%%%%%%% A-STAR SEARCH %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % agenda is a list of current structures
