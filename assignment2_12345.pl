@@ -44,19 +44,19 @@ solve_task2(Task,Cost):-
   %%%%%%%%%% A-STAR SEARCH %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % agenda is a list of current structures
 
-solve_task_astar(Task,Agenda,D,Path,[cost(C),depth(G)],NewPos) :-
+solve_task_astar(Task,Agenda,D,RPath,[cost(C),depth(G)],NewPos) :-
   %Parsing agenda to get current
+  writeln('Inside astar achieve clause'),
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
-  RPath = [ Path | X ],
-  Current = [c(F,G,Pos)],
-  achieved_v2(Task,Current,Path,C,NewPos).
+  Current = [c(F,G,Pos)|RPath],
+  achieved_v2(Task,Current,RPath,C,NewPos).
 
 solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   writeln('Solve astar'),
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
   % print_fgp(F,G,Pos),
-  ( setof([c(F1,G1,P1),RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
+  ( setof([c(F1,G1,P1)|RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
   -> append(Children,Agenda,NewAgenda) ; NewAgenda = Agenda),
   D1 is D+1,
   solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos).  % backtrack search
@@ -68,6 +68,7 @@ search_astar(go(P),Pos,F,G,G1,P1,RPath,NewRR) :-
   G1 is G+1,
   map_distance(P1,P,H),
   F is G1 + H,
+  writeln(P1),
   NewRR = [P1 | RPath].
 
 search_astar(find(O),Pos,F,G,P1,R,RPath) :-
@@ -80,7 +81,7 @@ search_astar(find(O),Pos,F,G,P1,R,RPath) :-
 
 achieved_v2(go(Exit),Current,RPath,Cost,NewPos) :-
   writeln('trying Achieve'),
-  Current = [c(Cost,G,NewPos)|Path],
+  Current = [c(Cost,G,NewPos)|RPath],
   ( Exit=none -> true
   ; otherwise ->  RPath = [Exit|_], writeln('achieved done!')
   ).
