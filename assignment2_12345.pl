@@ -23,8 +23,10 @@ solve_task2(Task,Cost):-
 solve_task_astar(Task,Agenda,D,RR,[cost(Cost),depth(Depth)],NewPos) :-
   %Parsing agenda to get current
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
-  Current = [c(F,G,Pos)|RPath],
-  achieved_v2(Task,Current,RPath,Cost,NewPos).
+  RPath = [ Path | X ],
+  Current = [c(F,G,Pos)],
+
+  achieved_v2(Task,Current,Path,Cost,NewPos).
 
 solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   writeln('Solve astar'),
@@ -55,7 +57,8 @@ search_astar(find(O),Pos,F,G,P1,R,RPath) :-
 
 achieved_v2(go(Exit),Current,RPath,Cost,NewPos) :-
   writeln('trying Achieve'),
-  Current = [c(Cost,G,Pos)|RPath],
+  
+  Current = [c(Cost,G,NewPos)|RR],
   ( Exit=none -> true
   ; otherwise ->  RPath = [Exit|_], writeln('achieved done!')
   ).
