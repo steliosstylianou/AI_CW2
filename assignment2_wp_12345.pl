@@ -4,7 +4,7 @@
 % find_identity(-A)
 find_identity(A):-
   (part_module(2)   -> find_identity_2(A)
-  ; otherwise -> find_identity_o(A)
+  ; otherwise       -> find_identity_o(A)
   ).
 
 generate_actor_link_list(X):-
@@ -29,7 +29,7 @@ whatsmyname(A,List):-
   whatsmyname(A,FilteredList).
 
 filter_actors(List,Link,FilteredList):-
-  List = [[Actor(A)|Links] | RestActors],
-  
+  include(memberchk(Link),List, FilteredList).
+
 find_identity_o(A):-
   A='Not yet implemented'.
