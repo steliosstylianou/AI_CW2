@@ -51,7 +51,7 @@ solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   Current = [c(F,G,Pos)|RPath],
   % print_fgp(F,G,Pos),
   ( setof([c(F1,G1,P1)|RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
-  -> append(Children,Agenda,NewAgenda) ; NewAgenda = Rest),
+  -> append(Children,Rest,NewAgenda) ; NewAgenda = Rest),
   D1 is D+1,
   solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos).  % backtrack search
 
@@ -62,7 +62,7 @@ solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   Current = [c(F,G,Pos)|RPath],
   % print_fgp(F,G,Pos),
   ( bagof([c(F1,G1,P1)|RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
-  -> append(Children,Agenda,NewAgenda) ; NewAgenda = Rest),
+  -> append(Children,Rest,NewAgenda) ; NewAgenda = Rest),
   D1 is D+1,
   solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos).  % backtrack search
 
@@ -96,3 +96,9 @@ achieved_v2(find(O),Current,RPath,Cost,NewPos) :-
   ( O=none    -> true
   ; otherwise -> RPath = [Last|_],map_adjacent(Last,_,O)
   ).
+
+print_agenda([]).
+print_agenda(Agenda) :-
+  Agenda =  [[c(F,G,Pos)|RPath]|Rest],
+  write('F = '), write(F), write('G = '), write(G), write('Pos = '), write(Pos),write('RPath'),writeln(RPath).
+  print_agenda(Rest).
