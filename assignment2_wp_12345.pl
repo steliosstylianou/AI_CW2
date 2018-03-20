@@ -15,7 +15,7 @@ generate_actor_link(A,Ls):-
 
 find_identity_2(A):-
   generate_actor_link_list(List),
-  whatsmyname(A,List).
+  whatsmyname(A,List),!.
 
 found_myself(A,List):-
   List = [[ actor(A)| Links]].
