@@ -39,7 +39,7 @@ search(F,N,N,1) :-
 
 solve_task_astar(Task,Agenda,D,RPath,[cost(C),depth(G)],NewPos) :-
   %Parsing agenda to get current
-  writeln('Inside astar achieve clause'),
+  % writeln('Inside astar achieve clause'),
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
   achieved_v2(Task,Current,RPath,C,NewPos).
@@ -63,10 +63,10 @@ solve_task_astar(Task,Agenda,D,RR,Cost,NewPos) :-
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
   % print_fgp(F,G,Pos),
-  writeln('Printing Agenda'),
-  print_agenda(Agenda),
+  % writeln('Printing Agenda'),
+  % print_agenda(Agenda),
   ( setof([c(F1,G1,P1)|RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
-  -> append(Children,Rest,NewAgenda) ; NewAgenda = Rest),
+  -> append(Rest,Children,NewAgenda) ; NewAgenda = Rest),
   D1 is D+1,
   solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos).  % backtrack search
 
