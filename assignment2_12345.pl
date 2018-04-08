@@ -1,4 +1,3 @@
-
 candidate_number(12345).
 
 solve_task(Task,Cost):-
@@ -12,6 +11,7 @@ solve_task(Task,Cost):-
 %% backtracking depth-first search, needs to be changed to agenda-based A*
 solve_task_bt(Task,Current,Depth,RPath,[cost(Cost),depth(Depth)],NewPos) :-
   achieved(Task,Current,RPath,Cost,NewPos).
+
 solve_task_bt(Task,Current,D,RR,Cost,NewPos) :-
   Current = [c(F,P)|RPath],
   search(P,P1,R,C),
@@ -52,8 +52,8 @@ solve_task_astar(Task,Agenda,D,RR,Cost,NewPos,Visited) :-
   % print_fgp(F,G,Pos),
   writeln('Printing Agenda'),
   print_agenda(Agenda),
-  ( setof([c(F1,G1,P1)|RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
-  -> append(Children,Rest,NewAgenda) ; NewAgenda = Rest),
+  ( setof([c(F1,G1,P1)|RR1], (search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
+  ->  append(Rest,Children ,NewAgenda), update_visited(Visited,Children, NewVisited) ; NewAgenda = Rest, NewVisited = Visited),
   D1 is D+1,
   solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos,Visited).  % backtrack search
 
@@ -63,12 +63,12 @@ solve_task_astar(Task,Agenda,D,RR,Cost,NewPos,Visited) :-
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
   % print_fgp(F,G,Pos),
-  % writeln('Printing Agenda'),
-  % print_agenda(Agenda),
-  ( setof([c(F1,G1,P1)|RR1], search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), Children)
-  -> remove_visited(Visited,Children,Children1), append(Rest,Children1,NewAgenda) ; NewAgenda = Rest),
+  writeln('Printing Agenda'),
+  print_agenda(Agenda),
+  ( setof([c(F1,G1,P1)|RR1], (search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
+  ->  append(Rest,Children ,NewAgenda), update_visited(Visited,Children, NewVisited) ; NewAgenda = Rest, NewVisited = Visited),
   D1 is D+1,
-  solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos,Visited).  % backtrack search
+  solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos,NewVisited).  % backtrack search
 
 search_astar(go(P),Pos,F,G,G1,P1,RPath,NewRR) :-
   % writeln('Searching astar go'),
@@ -107,11 +107,8 @@ print_agenda(Agenda) :-
   write('F = '), write(F), write(' G = '), write(G), write(' Pos = '), write(Pos),write(' RPath'),writeln(RPath).
   print_agenda(Rest).
 
-remove_visited(Visited,NewVisited,[],NewChildren).
+update_visited(Visited,[],Visited).
 
-remove_visited(Visited,NewVisited,Children,NewChildren) :-
+update_visited(Visited,Children,NewVisited):-
   Children = [[c(F,G,P)|RR]|RestChildren],
-  (\+ memberchk(P, Visited) -> NewVisited = [P1|Visited], NewChildren = Children
-    ; NewVisited = Visited, delete(Children, [c(F,G,P)|RR], NewChildren)
-  ),
-  remove_visited( RestChildren,
+  update_visited([P|Visited], RestChildren, NewVisited).
