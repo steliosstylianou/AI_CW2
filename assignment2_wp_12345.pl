@@ -34,47 +34,111 @@ whosleft(List,O,FilteredList):-
   query_world(agent_ask_oracle,[Agent,O,link,L]),
   filter_actors(List,L,FilteredList).
 
-
-
 filter_actors(List,Link,FilteredList):-
   include(memberchk(Link),List, FilteredList).
 
 find_identity_o(A):-
   generate_actor_link_list(ActorList),
-  find_myself(A,ActorList,[],[]).
+  my_agent(Agent),
+  query_world(agent_current_position,[Agent,P]),
+  writeln("Please wait while finding the Oracle and Charging Station locations"),
+  find_charging_stations(ChargingLocations,P,[]),
+  find_oracles(OraclesLocations,P,[]),
+  writeln("Finished"),
+  find_myself(A,ActorList,[],ChargingLocations,OraclesLocations,P).
 
-find_myself(A,ActorList,VisitedOracles,VisitedStations):-
+find_charging_stations(ChargingLocations,P,Draft):-
+  length(Draft,2),
+  ChargingLocations = Draft.
+
+find_charging_stations(ChargingLocations,P,Draft):-
+  Task = find(c(C)),
+  solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
+  map_adjacent(NewPos,ChargingPos,c(C)),
+  \+ memberchk((ChargingPos,c(C)),Draft),
+  find_charging_stations(ChargingLocations,NewPos,[(ChargingPos,c(C))|Draft]),!.
+
+find_oracles(OraclesLocations,P,Draft):-
+  length(Draft,10),
+  OraclesLocations = Draft.
+
+find_oracles(OraclesLocations,P,Draft):-
+  Task = find(o(O)),
+  solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
+  map_adjacent(NewPos,OraclePos,o(O)),
+  \+ memberchk((OraclePos, o(O)),Draft),
+  find_oracles(OraclesLocations,NewPos,[(OraclePos, o(O))|Draft]),!.
+
+
+generate_cost_list(P,Locations,CostList,Draft):-
+  Locations = [],
+  CostList = Draft.
+
+generate_cost_list(P,Locations,CostList,Draft):-
+  Locations = [Head|Tail],
+  Head = (ChargingPos, ID),
+  map_distance(P,ChargingPos,Cost),
+  append(Draft,[(Cost,ChargingPos,ID)],NewDraft),
+  generate_cost_list(P,Tail,CostList,NewDraft),!.
+
+generate_cost_adj(P,AdjPositions,CostList,Draft):-
+    AdjPositions = [],
+    CostList = Draft.
+
+generate_cost_adj(P,AdjPositions,CostList,Draft):-
+    AdjPositions = [AdjPos|Tail],
+    map_distance(P,AdjPos,Cost),
+    append(Draft,[(Cost,AdjPos)],NewDraft),
+    generate_cost_adj(P,Tail,CostList,NewDraft),!.
+
+find_lower_cost(Goal, P, Locations):-
+  generate_cost_list(P,Locations,CostList,[]),
+  sort(CostList,Sorted),
+  Sorted = [(Cost,GoalPos,ID)|_],
+  setof(NewPos, map_adjacent(GoalPos,NewPos,empty), Positions),
+  find_lower_adj(FinalPos,P,Positions),
+  Goal = (FinalPos,ID).
+
+find_lower_adj(NewPos, P, Locations):-
+  generate_cost_adj(P,Locations,CostList,[]),
+  sort(CostList,Sorted),
+  Sorted = [(Cost,NewPos)|_].
+
+find_myself(A,ActorList,VisitedOracles,ChargingLocations,OraclesLocations,P):-
   ActorList = [[ actor(A)|_ ]].
 
-find_myself(A,ActorList,VisitedOracles,VisitedStations):-
+find_myself(A,ActorList,VisitedOracles,ChargingLocations,OraclesLocations,P):-
   length(VisitedOracles,10),
   writeln('Finished and I still do not know who I am').
 
-find_myself(A,ActorList,VisitedOracles,VisitedStations):-
+find_myself(A,ActorList,VisitedOracles,ChargingLocations,OraclesLocations,P):-
   my_agent(Agent),
   query_world(agent_current_energy,[Agent,Energy]),
-  query_world(agent_current_position,[Agent,P]),
   write('Energy'),writeln(Energy),
   write_pos(P),
-  ( Energy < 40 -> Task = find(c(C)), solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
+  ( Energy < 40 -> find_lower_cost(Goal,P,ChargingLocations),
+                  Goal = (GoalPos,c(C)),
+                  write("Charging Goal Pos "),writeln(GoalPos),
+                  write("Charging Station "),writeln(C),
+                  Task = go(GoalPos), solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
                   NewVisitedOracles = VisitedOracles
-                  ;Task = find(o(O)), solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
+                  ;
+                  find_lower_cost(Goal,P,OraclesLocations),
+                  Goal = (GoalPos,o(O)),
+                  write("Oracle Goal Pos "),writeln(GoalPos),
+                  write("Oracle Station "),writeln(O),
+                  Task = go(GoalPos), solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
                   \+ memberchk(O,VisitedOracles),!,
                   NewVisitedOracles = [O|VisitedOracles],
                   write('Asking Oracle'), writeln(O) ),
+
    reverse(R,[_Init|Path]),
    query_world( agent_do_moves, [Agent,Path]),
-   (Task = find(c(C)) -> query_world(agent_topup_energy,[Agent,c(C)]),
+   (Goal = (_,c(C)) -> query_world(agent_topup_energy,[Agent,c(C)]),
                          ActorsLeft = ActorList
-   ; Task= find(o(O)) -> whosleft(ActorList,o(O),ActorsLeft)),
-   find_myself(A,ActorsLeft,NewVisitedOracles,VisitedStations),!.
+   ; Goal = (_,o(O)) -> whosleft(ActorList,o(O),ActorsLeft)),
+   find_myself(A,ActorsLeft,NewVisitedOracles,ChargingLocations,OraclesLocations,NewPos),!.
 
 write_pos(Pos):-
   Pos = p(X,Y),
   write(X), write(' '), writeln(Y).
-
-
-
-
-
-%
