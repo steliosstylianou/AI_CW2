@@ -4,8 +4,10 @@ solve_task(Task,Cost):-
   my_agent(Agent),
   query_world( agent_current_position, [Agent,P] ),
   solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,_NewPos,[]),!,  % prune choice point for efficiency
+  writeln('Found path'),
   reverse(R,[_Init|Path]),
-  query_world( agent_do_moves, [Agent,Path] ).
+  query_world( agent_do_moves, [Agent,Path] ),
+  write('Moved').
 
 %%%%%%%%%% Useful predicates %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% backtracking depth-first search, needs to be changed to agenda-based A*
@@ -92,7 +94,7 @@ achieved_v2(go(Exit),Current,RPath,Cost,NewPos) :-
   % writeln('trying Achieve'),
   Current = [c(Cost,G,NewPos)|RPath],
   ( Exit=none -> true
-  ; otherwise ->  RPath = [Exit|_], writeln('achieved done!')
+  ; otherwise ->  RPath = [Exit|_]
   ).
 
 achieved_v2(find(O),Current,RPath,Cost,NewPos) :-
