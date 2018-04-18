@@ -116,7 +116,7 @@ find_myself(A,ActorList,VisitedOracles,ChargingLocations,OraclesLocations,P):-
   my_agent(Agent),
   query_world(agent_current_energy,[Agent,Energy]),
   write('Energy'),writeln(Energy),
-  ( Energy < 40 ->find_lower_cost(Goal,P,ChargingLocations,VisitedOracles),
+  ( Energy < 50 ->find_lower_cost(Goal,P,ChargingLocations,VisitedOracles),
                   Goal = (GoalPos,c(C)),
                   write("Charging Goal Pos "),writeln(GoalPos),
                   write("Charging Station "),writeln(C),

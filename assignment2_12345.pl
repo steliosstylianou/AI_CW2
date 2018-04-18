@@ -45,16 +45,6 @@ solve_task_astar(Task,Agenda,D,RPath,[cost(C),depth(G)],NewPos,Visited) :-
   achieved_v2(Task,Current,RPath,C,NewPos).
 
 solve_task_astar(Task,Agenda,D,RR,Cost,NewPos,Visited) :-
-  Task = go(P),
-  Agenda =  [[c(F,G,Pos)|RPath]|Rest],
-  Current = [c(F,G,Pos)|RPath],
-  ( setof([c(F1,G1,P1)|RR1], (search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
-  ->  append(Rest,Children ,NewAgenda), update_visited(Visited,Children, NewVisited) ; NewAgenda = Rest, NewVisited = Visited),
-  D1 is D+1,
-  solve_task_astar(Task,NewAgenda,D1,RR,Cost,NewPos,NewVisited).  % backtrack search
-
-solve_task_astar(Task,Agenda,D,RR,Cost,NewPos,Visited) :-
-  Task = find(O),
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   Current = [c(F,G,Pos)|RPath],
   ( setof([c(F1,G1,P1)|RR1], (search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
@@ -118,9 +108,6 @@ explore_grid(Agenda,D,RR,Cost,Visited,Locations,Draft) :-
   (map_adjacent(Last,OraclePos,o(O)),
     \+ memberchk((OraclePos, o(O)),Draft) ->
       NewDraft = [(OraclePos,o(O))|Draft]; NewDraft = Draft),
-  % print_fgp(F,G,Pos),
-  % writeln('Printing Agenda'),
-  % writeln(Agenda),
   ( setof([c(F1,G1,P1)|RR1], (search_astar(Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
   ->  append(Rest,Children ,NewAgenda), update_visited(Visited,Children, NewVisited) ; NewAgenda = Rest, NewVisited = Visited),
   D1 is D+1,
