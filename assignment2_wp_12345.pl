@@ -42,8 +42,9 @@ find_identity_o(A):-
   generate_actor_link_list(ActorList),
   my_agent(Agent),
   query_world(agent_current_position,[Agent,P]),
-  writeln("Please wait while finding the Oracle and Charging Station locations"),
+  writeln("Please wait while finding Charging Station locations"),
   find_charging_stations(ChargingLocations,P,[]),
+  writeln("Please wait while finding Oracle locations"),
   find_oracles(OraclesLocations,P,[]),
   writeln("Finished"),
   find_myself(A,ActorList,[],ChargingLocations,OraclesLocations,P).
@@ -60,15 +61,7 @@ find_charging_stations(ChargingLocations,P,Draft):-
   find_charging_stations(ChargingLocations,NewPos,[(ChargingPos,c(C))|Draft]),!.
 
 find_oracles(OraclesLocations,P,Draft):-
-  length(Draft,10),
-  OraclesLocations = Draft.
-
-find_oracles(OraclesLocations,P,Draft):-
-  Task = find(o(O)),
-  solve_task_astar(Task,[[c(0,0,P),P]],0,R,Cost,NewPos,[]),
-  map_adjacent(NewPos,OraclePos,o(O)),
-  \+ memberchk((OraclePos, o(O)),Draft),
-  find_oracles(OraclesLocations,NewPos,[(OraclePos, o(O))|Draft]),!.
+  explore_grid([[c(0,0,P),P]],0,R,Cost,[P],OraclesLocations,Draft),!.
 
 generate_cost_list(P,Locations,CostList,Draft):-
   Locations = [],
