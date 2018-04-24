@@ -113,8 +113,31 @@ explore_grid(Agenda,D,RR,Cost,Visited,Locations,Draft) :-
   D1 is D+1,
   explore_grid(NewAgenda,D1,RR,Cost,NewVisited,Locations,NewDraft).  % backtrack search
 
+explore_grid(Agenda,D,RR,Cost,Visited,Locations,Draft) :-
+  Locations = Draft.
+
+
+solve_task_astar_p3(Task,Agenda,D,RPath,[cost(C),depth(G)],NewPos,Visited) :-
+  Agenda =  [[c(F,G,Pos)|RPath]|Rest],
+  Current = [c(F,G,Pos)|RPath],
+  achieved_v3(Task,Current,RPath,C,NewPos).
+
+solve_task_astar_p3(Task,Agenda,D,RR,Cost,NewPos,Visited) :-
+  Agenda =  [[c(F,G,Pos)|RPath]|Rest],
+  Current = [c(F,G,Pos)|RPath],
+  ( setof([c(F1,G1,P1)|RR1], (search_astar(Task,Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
+  ->  append(Rest,Children ,NewAgenda), update_visited(Visited,Children, NewVisited) ; NewAgenda = Rest, NewVisited = Visited),
+  D1 is D+1,
+  solve_task_astar_p3(Task,NewAgenda,D1,RR,Cost,NewPos,NewVisited).  % backtrack search
+
+
+achieved_v3(go(Exit),Current,RPath,Cost,NewPos) :-
+  Current = [c(Cost,G,NewPos)|RPath],
+  ( Exit=none -> true
+  ; otherwise ->  RPath = [Last|_],map_adjacent(Last,Exit,_)
+  ).
+
 search_astar(Pos,F,G,G1,P1,RPath,NewRR) :-
-  % writeln('Searching astar'),
   map_adjacent(Pos,P1,empty),
   \+ memberchk(P1, RPath),  % check we have not been here already
   G1 is G+1,
