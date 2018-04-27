@@ -67,6 +67,7 @@ search_astar(find(O),Pos,F,G,G1,P1,RPath,NewRR) :-
   F is G1,
   NewRR = [P1 | RPath].
 
+
 achieved_v2(go(Exit),Current,RPath,Cost,NewPos) :-
   % writeln('trying Achieve'),
   Current = [c(Cost,G,NewPos)|RPath],
@@ -80,42 +81,23 @@ achieved_v2(find(O),Current,RPath,Cost,NewPos) :-
   ; otherwise -> RPath = [Last|_],map_adjacent(Last,_,O)
   ).
 
+%Predicate for printing agenda
 print_agenda([]).
 print_agenda(Agenda) :-
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
   write('F = '), write(F), write(' G = '), write(G), write(' Pos = '), write(Pos),write(' RPath = '),write(RPath).
   print_agenda(Rest).
 
+% Predicate for updating the visited children.
 update_visited(Visited,[],Visited).
 
 update_visited(Visited,Children,NewVisited):-
   Children = [[c(F,G,P)|RR]|RestChildren],
   update_visited([P|Visited], RestChildren, NewVisited).
 
-% Part 3: BFS for finding OraclesLocations
-
-explore_grid(Agenda,D,RPath,[cost(C),depth(G)],Visited,Locations,Draft) :-
-  achieved_explore(Locations,Draft).
-
-achieved_explore(Locations,Draft):-
-  length(Draft,10),
-  Locations = Draft.
-
-explore_grid(Agenda,D,RR,Cost,Visited,Locations,Draft) :-
-  Agenda =  [[c(F,G,Pos)|RPath]|Rest],
-  Current = [c(F,G,Pos)|RPath],
-  RPath = [Last|_],
-  (map_adjacent(Last,OraclePos,o(O)),
-    \+ memberchk((OraclePos, o(O)),Draft) ->
-      NewDraft = [(OraclePos,o(O))|Draft]; NewDraft = Draft),
-  ( setof([c(F1,G1,P1)|RR1], (search_astar(Pos,F1,G,G1,P1,RPath,RR1), \+ memberchk(P1,Visited)), Children)
-  ->  append(Rest,Children ,NewAgenda), update_visited(Visited,Children, NewVisited) ; NewAgenda = Rest, NewVisited = Visited),
-  D1 is D+1,
-  explore_grid(NewAgenda,D1,RR,Cost,NewVisited,Locations,NewDraft).  % backtrack search
-
-explore_grid(Agenda,D,RR,Cost,Visited,Locations,Draft) :-
-  Locations = Draft.
-
+% Predicate for Part 3 used for moving the agend to a position occupied by an oracle.
+% This predicate was created since solve_task_astar does not allow to move on the location
+% that is not empty. This returns the path to the location of the oracle/charging station.
 
 solve_task_astar_p3(Task,Agenda,D,RPath,[cost(C),depth(G)],NewPos,Visited) :-
   Agenda =  [[c(F,G,Pos)|RPath]|Rest],
@@ -130,16 +112,9 @@ solve_task_astar_p3(Task,Agenda,D,RR,Cost,NewPos,Visited) :-
   D1 is D+1,
   solve_task_astar_p3(Task,NewAgenda,D1,RR,Cost,NewPos,NewVisited).  % backtrack search
 
-
+% Achieved is true when we are adjecent to the goal position.
 achieved_v3(go(Exit),Current,RPath,Cost,NewPos) :-
   Current = [c(Cost,G,NewPos)|RPath],
   ( Exit=none -> true
   ; otherwise ->  RPath = [Last|_],map_adjacent(Last,Exit,_)
   ).
-
-search_astar(Pos,F,G,G1,P1,RPath,NewRR) :-
-  map_adjacent(Pos,P1,empty),
-  \+ memberchk(P1, RPath),  % check we have not been here already
-  G1 is G+1,
-  F is G1,
-  NewRR = [P1 | RPath].
